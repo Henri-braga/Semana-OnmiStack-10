@@ -12,32 +12,15 @@ import './Main.css'
 
 
 export default function App() {
-  const [devs, setDevs] = useState([]);
-  const [github_username, setGithubUsername] = useState('');
-  const [techs, setTechs] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-
-        setLatitude(latitude)
-        setLongitude(longitude)
-      },
-      (err) => {
-        console.log(err)
-      },
-      {
-        timeout: 30000,
-      }
-    )
-  }, []);
+  const [ devs, setDevs ] = useState([]);
+  const [ name , setName ] = useState('');
+  const [ email, setEmail ] = useState('');
+  const [ techs, setTechs ] = useState('');
+  const [ address, setAddress ] = useState('');
 
   useEffect(() => {
     async function loadDevs() {
-      const response = await api.get('/devs');
+      const response = await api.get('/southers');
 
       setDevs(response.data)
     }
@@ -47,15 +30,17 @@ export default function App() {
   async function handleAddDev(e) {
     e.preventDefault();
 
-    const response = await api.post('/devs', {
-      github_username,
+    const response = await api.post('/southers', {
+      name,
+      email,
       techs,
-      latitude,
-      longitude
+      address
     });
 
-    setGithubUsername('');
+    setName('');
     setTechs('');
+    setEmail('');
+    setAddress('');
 
     setDevs([...devs, response.data]);
   };
@@ -63,18 +48,18 @@ export default function App() {
   return (
     <div id="app">
       <aside>
-        <strong>Cadastrar</strong>
+        <strong>Cadastrar Dev</strong>
         <form onSubmit={handleAddDev}>
 
           <div className="input-block">
-            <label htmlFor="github_usename">Usuário do Github</label>
+            <label htmlFor="name">Nome completo</label>
             <input 
               type="text" 
-              name="github_usename" 
-              id="github_usename" 
+              name="name" 
+              id="name" 
               required
-              value={github_username}
-              onChange={e => setGithubUsername(e.target.value)}
+              value={name}
+              onChange={e => setName(e.target.value)}
               />
           </div>
 
@@ -89,31 +74,29 @@ export default function App() {
               />
           </div>
 
-          <div className="input-group">
-
-            <div className="input-block">
-              <label htmlFor="latidude">Latitude</label>
-              <input 
-                type="number" 
-                name="latidude" 
-                id="latidude" 
-                value={latitude} 
-                onChange={e => setLatitude(e.target.value)}
+          <div className="input-block">
+            <label htmlFor="techs">email</label>
+            <input 
+              type="text" 
+              name="techs" 
+              id="techs" 
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               />
-            </div>
-
-            <div className="input-block">
-              <label htmlFor="longitude">Longitude</label>
-              <input 
-                type="number" 
-                name="longitude" 
-                id="longitude" 
-                value={longitude} 
-                onChange={e => setLongitude(e.target.value)}
-                />
-            </div>
-
           </div>
+
+          <div className="input-block">
+            <label htmlFor="techs">Endereço</label>
+            <input 
+              type="text" 
+              name="techs" 
+              id="techs" 
+              value={address}
+              onChange={e => setAddress(e.target.value)}
+              />
+          </div>
+
+
           <button type="submit">Salvar</button>
         </form>
       </aside>
@@ -122,16 +105,19 @@ export default function App() {
           {devs.map(dev => (
             <li key={dev._id} className="dev-item">
               <header>
-                <img src={dev.avatar_url} alt={dev.name}/>
+                <img src='https://api.adorable.io/avatars/150/abott@adorable.png' alt={dev.name}/>
                 <div className="user-info">
                   <strong>{dev.name}</strong>
                   <span>{dev.techs.join(', ')}</span>
                 </div>
               </header>
               <p>
-                {dev.bio}
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+                Possimus dolor eveniet nemo quia perferendis sapiente 
+                quo ad accusantium aspernatur, cum eaque maiores earum 
+                asperiores! At ab quos minus eos molestias?
               </p>
-              <a href={`http://github.com/${dev.github_username}`}>Acessar perfil no Github</a>
+              <a target="blank" href="www.google.com">Perfil do usuário</a>
             </li>
           ))}
         </ul>

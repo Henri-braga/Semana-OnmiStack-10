@@ -1,13 +1,12 @@
 import { Router } from 'express'
 
-import DevsController from './app/controllers/DevsController'
-import SearchController from './app/controllers/SearchController'
+import SouthersController from './app/controllers/SouthersController'
+import SoutherSearchController from './app/controllers/SoutherSearchController'
 
 const routes = new Router()
 
-routes.get('/devs', DevsController.index)
-routes.post('/devs', DevsController.store)
-
-routes.get('/search', SearchController.index)
+routes.get('/southers', SouthersController.index)
+routes.post('/southers', SouthersController.store)
+routes.get('/search-southers', SoutherSearchController.index)
 
 export default routes
