@@ -12,12 +12,12 @@ const Routes = createAppContainer(
         title: 'Southers'
       }
     },
-    Profile: {
-      screen: Profile,
-      navigationOptions: {
-        title: 'Perfil no Github'
-      }
-    },
+    // Profile: {
+    //   screen: Profile,
+    //   navigationOptions: {
+    //     title: 'Perfil no Github'
+    //   }
+    // },
   }, {
     defaultNavigationOptions: {
       headerTintColor: '#fff',

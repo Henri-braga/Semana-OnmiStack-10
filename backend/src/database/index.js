@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import mongoose from 'mongoose'
 
-const { HOST, DATABASE } = process.env
+const { MONGO_URL_TEST, MONGO_URL } = process.env
 
-const url = `mongodb://${HOST}/${DATABASE}`
+const url = MONGO_URL
 const opts = {
   useNewUrlParser: true,
   useCreateIndex: true,
