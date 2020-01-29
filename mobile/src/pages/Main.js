@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, 
+import {
+  StyleSheet,
   View, 
   Text,
   TextInput,
-  Sele,
   TouchableOpacity, 
-  Modal
+  Modal,
+  TouchableHighlight
 } from 'react-native';
 
+import RNPickerSelect from 'react-native-picker-select';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Entypo } from '@expo/vector-icons';
+
+import geoLocation from '../services';
 
 import api from '../services/api';
 
-function Main({ navigation }) {
+function Main() {
   const [ devs, setDevs ] = useState([]);
   const [ currentRegion, setCurrentRegion ] = useState(null);
   const [ techs, setTechs ] = useState('');
   const [ modal, setModal ] = useState(false);
-  const [ ref, setRef ] = useState('');
+  const [ address, setAddress ] = useState('');
   const [ distance, setDistance ] = useState('');
   const [ professional, setProfessional ] = useState('souther');
   const [ perfil, setPerfil ] = useState(false);
+  const [ localJobs, setLocalJobs ] = useState({})
+
+
 
   useEffect(() => {
     async function loadInitialPosition() {
@@ -42,6 +48,11 @@ function Main({ navigation }) {
           latitudeDelta: 0.04,
           longitudeDelta: 0.04, 
         })
+
+        setLocalJobs({
+          latitude,
+          longitude,
+        })
       }
     }
 
@@ -49,28 +60,34 @@ function Main({ navigation }) {
   }, []);
 
   async function loadDevs() {
-    // const { latitude, longitude } = currentRegion;
-    const latitude = -30.0390287
-    const longitude = -51.2028622
-    
+      const response = await api.get('/search-southers', {
+        params: {
+          address,
+          distance,
+          professional,
+          techs: techs.toLowerCase()
+        }
+      });
 
-    const response = await api.get('/search-southers', {
-      params: {
-        latitude,
-        longitude,
-        techs: techs.toLowerCase()
-      }
-    });
-
-    setDevs(response.data.devs);
+      setDevs(response.data);
   }
 
   function handleRegionChanged(region) {
     setCurrentRegion(region);
   }
 
-  function openModal() {
-    setModal(true)
+  async function currentLocationJob(value) {
+    setAddress(value)
+
+    const { lat, lng } = await geoLocation(value)
+
+    const latitude = lat;
+    const  longitude = lng;
+
+    setLocalJobs({
+      latitude,
+      longitude
+    })
   }
 
   if(!currentRegion) {
@@ -80,8 +97,11 @@ function Main({ navigation }) {
   return (
     <>
       <MapView onRegionChangeComplete={handleRegionChanged} initialRegion={currentRegion} style={styles.map}>
+        <Marker style={styles.addressJob} coordinate={localJobs}>
+          <Entypo name="location" style={styles.avatarClient} />
+        </Marker>
         {devs.map(dev => (
-          <Marker style={styles.container} key={dev._id} coordinate={{ 
+          <Marker style={styles.container} key={dev._id} coordinate={{
                 latitude: dev.location.coordinates[1], 
                 longitude: dev.location.coordinates[0]
               }}>
@@ -108,9 +128,12 @@ function Main({ navigation }) {
           value={techs}
           onChangeText={setTechs}
         />
-        <TouchableOpacity onPress={loadDevs} style={styles.loadButton}>
+        <TouchableOpacity underlayColor="red" onPress={loadDevs} style={styles.loadButton}>
           <MaterialIcons  name="search" size={30} color="#fff" />
         </TouchableOpacity>
+        <TouchableHighlight>
+          
+        </TouchableHighlight>
       </View>
       <View style={styles.plusContainer}>
       <TouchableOpacity onPress={() => setModal(true)} style={styles.plusButton}>
@@ -132,47 +155,71 @@ function Main({ navigation }) {
         visible={modal}
       >
         <View style={styles.modalView}>
-          <Text style={styles.titleModal}> 
+          <Text style={styles.titleModal}>
             Filtro avançado
           </Text>
-          <TextInput
-            style={styles.searchInputModal}
-            placeholder="Endereço da vaga"
-            placeholderTextColor="#999"
-            autoCapitalize="words"
-            autoCorrect={false}
-            value={ref}
-            onChangeText={setRef}
-          />
-          <TextInput
-            style={styles.searchInputModal}
-            placeholder="Raio de busca "
-            placeholderTextColor="#999"
-            autoCapitalize="words"
-            autoCorrect={false}
-            value={distance}
-            onChangeText={setDistance}
-          />
+          <View style={styles.containerSelect}>   
+            <RNPickerSelect
+              style={styles.selectJob}
+              value={address}
+              onValueChange={(value) => currentLocationJob(value) }
+              items={[
+                  { label: 'Agibank', value: 'R. Mariante, 25 - Rio Branco, Porto Alegre/RS' },
+                  { label: 'Topazio', value: 'Rua Dezoito de Novembro, 273 - Navegantes, Porto Alegre/RS' },
+                  { label: 'Woop sicredi', value: 'Av. Assis Brasil, 3940 - Jardim Lindoia, Porto Alegre - RS' },
+                  { label: 'Getnet', value: 'v. Pernambuco, 1483 - São Geraldo, Porto Alegre - RS' },
+                  { label: 'Way2 tecnology', value: 'Rodovia SC-401, 4150 km 4. CIA Centro de Inovação Acate, sala 17 - Saco Grande, Florianópolis - SC' },
+              ]}
+            />
+          </View>
+          <View style={styles.containerSelect}>
+            <RNPickerSelect
+              value={professional}
+              onValueChange={(value) => setProfessional(value)}
+              items={[
+                { label: 'Souther', value: 'Souther' },
+                { label: 'Outros', value: 'Outros' },
+              ]}
+            />
+          </View>
+
+          <View style={styles.containerSelect}>
+            <RNPickerSelect
+              value={distance}
+              onValueChange={(value) => setDistance(value)}
+              items={[
+                { label: '10km', value: 10000 },
+                { label: '20km', value: 20000 },
+                { label: '30km', value: 30000 },
+                { label: '40km', value: 40000 },
+                { label: '50km', value: 50000 },
+                { label: '60km', value: 60000 },
+                { label: '70km', value: 70000 },
+                { label: '80km', value: 80000 },
+                { label: '90km', value: 90000 },
+                { label: '100km', value: 100000 },
+                { label: '110km', value: 110000 },
+                { label: '120km', value: 120000 },
+                { label: '130km', value: 130000 },
+                { label: '140km', value: 140000 },
+                { label: '150km', value: 150000 },
+                { label: '200km', value: 200000 },
+              ]}
+            />
+          </View>
+
           <TextInput
             style={styles.searchInputModal}
             placeholder="tecnologias"
             placeholderTextColor="#999"
-            autoCapitalize="words"
+            autoCapitalize="none"
             autoCorrect={false}
             value={techs}
             onChangeText={setTechs}
           />
-          <TextInput
-            style={styles.searchInputModal}
-            placeholder="Profissional "
-            placeholderTextColor="#999"
-            autoCapitalize="words"
-            autoCorrect={false}
-            value={professional}
-            onChangeText={setProfessional}
-          />
+
           <TouchableOpacity onPress={() => setModal(false)}>
-            <MaterialIcons  name="cancel" style={styles.closeModal} />
+            <MaterialIcons name="cancel" style={styles.closeModal} />
           </TouchableOpacity>
         </View>
       </Modal>
@@ -183,6 +230,18 @@ function Main({ navigation }) {
 const styles = StyleSheet.create({
   map: {
     flex: 1
+  },
+  
+  containerSelect:{
+    width: 300,
+    backgroundColor: '#fff',
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+
+  avatarClient: {
+    fontSize: 35,
+    color: '#fe6e00'
   },
 
   backgroundAvatar: {
@@ -280,12 +339,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
-  filterContainer: {
-    position: 'absolute',
-    top: 80,
-    right: 20,
-  },
-
   modalView: {
     flex: 1,
     justifyContent: 'flex-start',
@@ -305,7 +358,29 @@ const styles = StyleSheet.create({
     height: 50,
     width: 300,
     backgroundColor: '#fff',
-    color: '#333',
+    color: '#000',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    marginBottom: 10,
+    shadowOffset: {
+      width: 4,
+      height: 4,
+    },
+    elevation: 2,
+  },
+
+  selectJob: {
+    maxWidth: 150,
+  },
+  
+  selectDistance: {
+    height: 50,
+    width: 300,
+    maxWidth: 80,
+    backgroundColor: '#fff',
+    color: '#fff',
     borderRadius: 25,
     paddingHorizontal: 20,
     shadowColor: '#000',

@@ -1,17 +1,25 @@
 import Southers from '../models/Souter'
 import parseStringAsArray from '../utils/parseStringAsArray'
 import defaultDistance from '../../constants/index'
+import geoLocation from '../../services/api'
 
-console.log(defaultDistance)
 class SoutherSearchController {
   async index (req, res) {
-    const { techs, distance } = req.query
+    const { techs, distance, work, address } = req.query
 
     const techsArray = parseStringAsArray(techs)
+    console.log('techs', techs, 'distance', distance, 'work', work, 'address', address)
 
-    const latitude = -30.1060294
-    const longitude = -51.2480132
+    if (!address && !techs) {
+      return res.status(404).json({ erro: 'technologies and address are required' })
+    }
+
+    const { lat, lng } = await geoLocation(address)
+
+    const latitude = lat
+    const longitude = lng
     let distanceValue = ''
+
     distance ? distanceValue = distance : distanceValue = defaultDistance
 
     const devs = await Southers.find({
@@ -29,7 +37,8 @@ class SoutherSearchController {
       }
     })
 
-    return res.json({ devs })
+    console.log(devs)
+    return res.json(devs)
   }
 }
 

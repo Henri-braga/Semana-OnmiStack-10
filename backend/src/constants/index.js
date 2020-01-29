@@ -1,4 +1,4 @@
 
-const defaultDistance = 1500000
+const defaultDistance = 10000
 
 export default defaultDistance

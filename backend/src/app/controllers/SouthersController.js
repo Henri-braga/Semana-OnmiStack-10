@@ -1,5 +1,6 @@
 import Southers from '../models/Souter'
 
+import geoLocation from '../../services/api'
 import parseStringAsArray from '../utils/parseStringAsArray'
 import randonColor from '../utils/colorGenerator'
 import FirstLetter from '../utils/firstNameGenerator'
@@ -20,12 +21,16 @@ class UserController {
   }
 
   async store (req, res) {
-    const { name, email, techs, address, office, status, work } = req.body
+    const { name, email, address, techs, office, status, work } = req.body
 
     const techArray = parseStringAsArray(techs)
 
-    const latitude = -30.01982
-    const longitude = -51.1598425
+    await geoLocation(address)
+
+    const { lat, lng } = await geoLocation(address)
+
+    const latitude = lat
+    const longitude = lng
 
     const avatar = [randonColor, FirstLetter(name)]
 
